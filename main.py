@@ -8,9 +8,13 @@ from k_parser import (
 )
 
 from node_utils import (
-    filter_elements_by_pid,
+    filter_elements_by_pids,
     collect_node_ids,
     get_target_nodes,
+)
+
+from mass_utils import (
+    optimize_ramp_distribution,
 )
 
 
@@ -21,8 +25,12 @@ def main():
     # -------------------------
     input_dir = Path("input")
 
-    target_pid = 100
-
+    target_pids = {
+        100,
+        101,
+        102,
+        200,
+    }
     element_field_width = 8
     node_field_widths = [8, 16, 16, 16]
 
@@ -64,13 +72,13 @@ def main():
     # -------------------------
     # PIDでELEMENT抽出
     # -------------------------
-    target_elements = filter_elements_by_pid(
+    target_elements = filter_elements_by_pids(
         elements,
-        target_pid
+        target_pids
     )
 
     print()
-    print(f"対象PID: {target_pid}")
+    print(f"対象PID: {target_pids}")
     print(f"対象ELEMENT数: {len(target_elements)}")
 
     # -------------------------
@@ -143,6 +151,151 @@ def main():
             f"Y: {node['y']:16.6f}  "
             f"Z: {node['z']:16.6f}"
         )
+
+    # -------------------------
+    # 質量条件
+    # -------------------------
+
+    additional_mass = 100.0
+
+    target_cg_x = 1000.0
+    target_cg_z = 50.0
+
+    # 正規化座標上のCG誤差許容値
+    cg_tolerance = 1.0e-4
+
+
+    # -------------------------
+    # ランプ質量最適化
+    # -------------------------
+
+    result = optimize_ramp_distribution(
+        target_nodes,
+        total_mass=additional_mass,
+        target_cg_x=target_cg_x,
+        target_cg_z=target_cg_z,
+        cg_tolerance=cg_tolerance,
+    )
+
+
+    # -------------------------
+    # 結果表示
+    # -------------------------
+
+    print()
+    print("--- 2D RAMP MASS RESULT ---")
+
+    print(
+        f"指定総質量 : "
+        f"{additional_mass:.6f}"
+    )
+
+    print(
+        f"計算総質量 : "
+        f"{result['total_mass']:.6f}"
+    )
+
+    print()
+
+    print(
+        f"指定重心 X : "
+        f"{target_cg_x:.6f}"
+    )
+
+    print(
+        f"計算重心 X : "
+        f"{result['cg_x']:.6f}"
+    )
+
+    print()
+
+    print(
+        f"指定重心 Z : "
+        f"{target_cg_z:.6f}"
+    )
+
+    print(
+        f"計算重心 Z : "
+        f"{result['cg_z']:.6f}"
+    )
+
+    print()
+
+    print(
+        f"CG誤差     : "
+        f"{result['cg_error']:.10e}"
+    )
+
+    print(
+        f"許容値内   : "
+        f"{result['cg_condition_met']}"
+    )
+
+    print()
+
+    print(
+        f"theta      : "
+        f"{result['theta_deg']:.6f} deg"
+    )
+
+    print(
+        f"d          : "
+        f"{result['d']:.10f}"
+    )
+
+    print()
+
+    print(
+        f"最小質量   : "
+        f"{result['min_mass']:.10e}"
+    )
+
+    print(
+        f"最大質量   : "
+        f"{result['max_mass']:.10e}"
+    )
+
+    print(
+        f"質量ありNODE : "
+        f"{result['positive_node_count']}"
+    )
+
+    print(
+        f"質量0 NODE   : "
+        f"{result['zero_mass_node_count']}"
+    )
+
+    print(
+        f"全NODE数     : "
+        f"{result['total_node_count']}"
+    )
+
+    print()
+    print("--- NODE座標範囲 ---")
+
+    print(
+        f"X範囲 : "
+        f"{result['x_min']:.6f} "
+        f"～ {result['x_max']:.6f}"
+    )
+
+    print(
+        f"Z範囲 : "
+        f"{result['z_min']:.6f} "
+        f"～ {result['z_max']:.6f}"
+    )
+
+    print()
+
+    print(
+        f"X重心誤差 : "
+        f"{result['cg_error_x']:.6f}"
+    )
+
+    print(
+        f"Z重心誤差 : "
+        f"{result['cg_error_z']:.6f}"
+    )
 
 
 if __name__ == "__main__":

@@ -1,25 +1,31 @@
-def filter_elements_by_pid(elements, target_pid):
+def filter_elements_by_pids(elements, target_pids):
     """
-    指定PIDのELEMENTだけを抽出する。
+    指定された複数PIDのいずれかに属するELEMENTを抽出する。
 
     Parameters
     ----------
     elements : list[dict]
-        parse_element_shell() で作成したELEMENT一覧
+        ELEMENT一覧
 
-    target_pid : int
-        抽出したいPID
+    target_pids : set[int]
+        対象PID集合
+
+        例:
+        {100, 101, 102, 200}
 
     Returns
     -------
     list[dict]
-        指定PIDに属するELEMENT一覧
+        対象PIDに属するELEMENT一覧
     """
+
+    target_pids = set(target_pids)
 
     target_elements = []
 
     for element in elements:
-        if element["pid"] == target_pid:
+
+        if element["pid"] in target_pids:
             target_elements.append(element)
 
     return target_elements
