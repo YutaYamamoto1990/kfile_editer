@@ -17,6 +17,7 @@ from mass_utils import (
     optimize_ramp_distribution,
 )
 
+from k_writer import write_element_mass
 
 def main():
 
@@ -26,13 +27,22 @@ def main():
     input_dir = Path("input")
 
     target_pids = {
-        100,
-        101,
-        102,
-        200,
+        103, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 204, 205, 206
     }
     element_field_width = 8
     node_field_widths = [8, 16, 16, 16]
+
+    # -------------------------
+    # 質量条件
+    # -------------------------
+
+    additional_mass = 0.329245057
+
+    target_cg_x = -8.698453325
+    target_cg_z = 250.7169486
+
+    # 正規化座標上のCG誤差許容値
+    cg_tolerance = 1.0e-4
 
     # -------------------------
     # Kファイル取得
@@ -152,18 +162,6 @@ def main():
             f"Z: {node['z']:16.6f}"
         )
 
-    # -------------------------
-    # 質量条件
-    # -------------------------
-
-    additional_mass = 100.0
-
-    target_cg_x = 1000.0
-    target_cg_z = 50.0
-
-    # 正規化座標上のCG誤差許容値
-    cg_tolerance = 1.0e-4
-
 
     # -------------------------
     # ランプ質量最適化
@@ -177,6 +175,13 @@ def main():
         cg_tolerance=cg_tolerance,
     )
 
+    nodal_masses = result["nodal_masses"]
+
+    write_result = write_element_mass(
+        nodal_masses,
+        output_path="output/element_mass.k",
+        start_eid=9000000,
+    )
 
     # -------------------------
     # 結果表示
